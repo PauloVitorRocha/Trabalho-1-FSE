@@ -1,3 +1,7 @@
 all:
 	cd FSE/ && \
-	gcc trabalho1.c pid.c uart.c lcd.c crc_crc16.c bme280.c gpio.c -lwiringPi -lpthread -o trab1;
+	gcc trabalho1.c pid.c uart.c lcd.c crc_crc16.c bme280.c gpio.c -lwiringPi -lpthread -o trab1.o
+
+
+run:
+	./FSE/trab1.o
