@@ -31,7 +31,7 @@ typedef unsigned char uchar;
 int fd; // seen by all subroutines
 int saida = 1;
 int input_user = 0;
-double tempRef;
+double tempRef, userRef;
 pthread_t threads[2];
 FILE *ptr;
 
@@ -39,6 +39,19 @@ FILE *ptr;
 #define DELAY 1000000
 // Width of the graph (128 - 40)
 #define WIDTH 88
+
+char buffer[10];
+
+void time_generate()
+{
+    time_t current_time;
+    struct tm *time_info;
+
+    time(&current_time);
+    time_info = localtime(&current_time);
+
+    strftime(buffer, 10, "%H:%M:%S", time_info);
+}
 
 void *get_all_temp()
 {
@@ -57,10 +70,17 @@ void *get_all_temp()
         double tempInt, tempAmb;
         if (!input_user)
         {
-            tempRef = get_temp_potencio();
+            tempRef = get_temp(0xC2);
         }
-        tempInt = get_temp_interna();
+        else{
+            tempRef=userRef;
+        }
+        tempInt = get_temp(0xC1);
         tempAmb = (double)T / 100.0;
+        if (tempInt == -1 || tempRef == -1 || tempInt < tempAmb || tempInt > 100.0 || tempRef < tempAmb || tempRef > 100.0)
+        {
+            continue;
+        }
         pid_atualiza_referencia(tempRef);
 
         double controle = pid_controle(tempInt);
@@ -80,12 +100,14 @@ void *get_all_temp()
         // printf("TI = %3.2f\n", tempInt);
         // printf("TA = %3.2f\n", tempAmb);
 
+        time_generate();
         ptr = fopen("temp.csv", "a");
         if (ptr == NULL)
         {
             printf("Error ao abrir arquivo!");
             exit(1);
         }
+        fprintf(ptr, "%s,", buffer);
         fprintf(ptr, "%3.2f,", tempRef);
         fprintf(ptr, "%3.2f,", tempInt);
         fprintf(ptr, "%3.2f,", tempAmb);
@@ -100,12 +122,13 @@ void *get_input()
     while (saida)
     {
         printf("1 - Mudar TR\n");
+        printf("2 - Retornar a TR do potenciometro\n");
         int opcao;
         scanf("%d", &opcao);
         if (opcao == 1)
         {
             printf("Enviar uma nova TR: ");
-            scanf("%lf", &tempRef);
+            scanf("%lf", &userRef);
             input_user = 1;
         }
         else if (opcao == 2)
@@ -143,7 +166,14 @@ int main()
     signal(SIGINT, sig_handler);
 
     usleep(1000000); // wait for data to settle for first read
-
+    ptr = fopen("temp.csv", "w");
+    if (ptr == NULL)
+    {
+        printf("Error ao abrir arquivo!");
+        exit(1);
+    }
+    fprintf(ptr, "DATETIME, TR, TI, TA, ATUADORES\n");
+    fclose(ptr);
     pid_configura_constantes(5, 1, 5);
     pthread_create(&threads[0], NULL, get_all_temp, NULL);
     pthread_create(&threads[1], NULL, get_input, NULL);
