@@ -139,9 +139,11 @@ void *get_input()
                 usleep(1000000);
             }
             input_user = 1;
+            printf("Mudando a TR\n");
         }
         else if (opcao == 2)
         {
+            printf("Mudando a TR para a do potenciometro\n");
             input_user = 0;
         }
         usleep(1000000);
