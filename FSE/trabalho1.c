@@ -31,7 +31,7 @@ typedef unsigned char uchar;
 int fd; // seen by all subroutines
 int saida = 1;
 int input_user = 0;
-double tempRef, userRef;
+double tempRef, userRef, tempAmb;
 pthread_t threads[2];
 FILE *ptr;
 
@@ -67,13 +67,14 @@ void *get_all_temp()
         }
 
         // printf("BME280 device successfully opened.\n");
-        double tempInt, tempAmb;
+        double tempInt;
         if (!input_user)
         {
             tempRef = get_temp(0xC2);
         }
-        else{
-            tempRef=userRef;
+        else
+        {
+            tempRef = userRef;
         }
         tempInt = get_temp(0xC1);
         tempAmb = (double)T / 100.0;
@@ -127,8 +128,16 @@ void *get_input()
         scanf("%d", &opcao);
         if (opcao == 1)
         {
+            userRef = 0;
             printf("Enviar uma nova TR: ");
             scanf("%lf", &userRef);
+            while (userRef < tempAmb || userRef > 100)
+            {
+                printf("TR não pode ser menor q a TA\n");
+                printf("Enviar uma nova TR: ");
+                scanf("%lf", &userRef);
+                usleep(1000000);
+            }
             input_user = 1;
         }
         else if (opcao == 2)
