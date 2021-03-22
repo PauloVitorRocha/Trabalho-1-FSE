@@ -124,7 +124,7 @@ void *get_input()
     {
         printf("1 - Mudar TR\n");
         printf("2 - Retornar a TR do potenciometro\n");
-        int opcao;
+        int opcao=0;
         scanf("%d", &opcao);
         if (opcao == 1)
         {
@@ -142,7 +142,6 @@ void *get_input()
         }
         else if (opcao == 2)
         {
-            printf("Retornar a TR do potenciometro: ");
             input_user = 0;
         }
         usleep(1000000);
