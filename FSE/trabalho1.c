@@ -164,7 +164,7 @@ void sig_handler(int signum)
 
 int main()
 {
-
+    system("clear");
     lcd_init(); // setup LCD
     gpio_init();
     int i = bme280Init(1, 0x76);
